@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>⚡ 貼圖回覆產生器</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Cubic+11&family=LXGW+WenKai+TC:wght@400;700&family=Zen+Maru+Gothic:wght@700;900&family=Kosugi+Maru&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: #0a0a0b;
+      color: #e5e5e5;
+      min-height: 100vh;
+      padding: 16px;
+      padding-bottom: 100px;
+    }
+
+    h1 {
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* 區塊標題 */
+    .section-title {
+      font-size: 14px;
+      color: #71717a;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #27272a;
+    }
+
+    /* 輸入區塊 */
+    .input-section {
+      background: #18181b;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      font-family: inherit;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      border-radius: 8px;
+      color: #e5e5e5;
+      resize: none;
+      margin-bottom: 12px;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .label {
+      font-size: 14px;
+      color: #a1a1aa;
+      min-width: 50px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .option-btn {
+      padding: 8px 14px;
+      font-size: 14px;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      color: #a1a1aa;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .option-btn:hover { background: #3f3f46; }
+    .option-btn.active {
+      background: #667eea;
+      border-color: #667eea;
+      color: #fff;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      height: 6px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: #3f3f46;
+      border-radius: 3px;
+      cursor: pointer;
+      min-width: 100px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #667eea;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .color-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .color-picker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    input[type="color"] {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: transparent;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch {
+      border: 2px solid #3f3f46;
+      border-radius: 6px;
+    }
+
+    /* 字體選擇 */
+    .font-select {
+      padding: 8px 12px;
+      font-size: 14px;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      color: #e5e5e5;
+      cursor: pointer;
+      min-width: 140px;
+    }
+    .font-select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    /* 上傳區 */
+    .upload-section {
+      margin-bottom: 16px;
+    }
+    .upload-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      font-family: inherit;
+      background: transparent;
+      border: 2px dashed #3f3f46;
+      border-radius: 12px;
+      color: #a1a1aa;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .upload-btn:hover {
+      border-color: #667eea;
+      color: #667eea;
+    }
+    #file-input { display: none; }
+
+    /* 貼圖網格 */
+    .sticker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .sticker-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      background: #27272a;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .sticker-item:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+    }
+    .sticker-item:active {
+      transform: scale(0.95);
+    }
+
+    .sticker-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .sticker-item .delete-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.9);
+      border: none;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .sticker-item:hover .delete-btn { display: flex; }
+
+    /* 內建圖片管理 */
+    .manage-section {
+      background: #18181b;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .manage-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .manage-title {
+      font-size: 14px;
+      color: #a1a1aa;
+    }
+
+    .manage-toggle {
+      padding: 6px 12px;
+      font-size: 12px;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      color: #a1a1aa;
+      cursor: pointer;
+    }
+    .manage-toggle:hover { background: #3f3f46; }
+
+    .manage-content {
+      display: none;
+    }
+    .manage-content.show { display: block; }
+
+    .add-builtin-btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #667eea;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+    .add-builtin-btn:hover {
+      background: #5a6fd6;
+    }
+    #builtin-file-input { display: none; }
+
+    /* GitHub 設定 */
+    .github-section {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #3f3f46;
+    }
+    .github-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .github-input {
+      flex: 1;
+      padding: 10px 12px;
+      font-size: 13px;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      color: #e5e5e5;
+    }
+    .github-input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    .github-btn {
+      padding: 10px 14px;
+      font-size: 13px;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      color: #a1a1aa;
+      cursor: pointer;
+    }
+    .github-btn:hover { background: #3f3f46; }
+    .github-btn.primary {
+      background: #667eea;
+      border-color: #667eea;
+      color: #fff;
+    }
+    .github-hint {
+      font-size: 12px;
+      color: #71717a;
+      margin-top: 4px;
+    }
+    .github-status {
+      font-size: 12px;
+      color: #10b981;
+      margin-top: 8px;
+    }
+    .github-status.error { color: #ef4444; }
+
+    .builtin-list {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .builtin-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      background: #27272a;
+      border-radius: 6px;
+      margin-bottom: 6px;
+    }
+    .builtin-item img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    .builtin-item .url-text {
+      flex: 1;
+      font-size: 12px;
+      color: #71717a;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .builtin-item .remove-btn {
+      padding: 4px 8px;
+      font-size: 12px;
+      background: #ef4444;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    /* 結果彈窗 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #27272a;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-hint {
+      color: #a1a1aa;
+      font-size: 14px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .modal-hint strong {
+      color: #667eea;
+    }
+
+    .result-image {
+      max-width: 90%;
+      max-height: 70vh;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      -webkit-touch-callout: default;
+      -webkit-user-select: auto;
+      user-select: auto;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .action-btn {
+      padding: 14px 28px;
+      font-size: 16px;
+      font-family: inherit;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.2s;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+    }
+    .action-btn:active { transform: scale(0.95); }
+
+    /* 使用說明 */
+    .instructions {
+      text-align: center;
+      color: #71717a;
+      font-size: 14px;
+      padding: 16px;
+      border-top: 1px solid #27272a;
+    }
+    .instructions p { margin: 4px 0; }
+
+    #canvas { display: none; }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 30px 20px;
+      color: #71717a;
+      font-size: 14px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      background: #10b981;
+      color: #fff;
+      border-radius: 8px;
+      font-weight: 600;
+      z-index: 2000;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+    .toast.error { background: #ef4444; }
+  </style>
+</head>
+<body>
+  <h1>⚡ 貼圖回覆產生器</h1>
+
+  <!-- 文字設定 -->
+  <div class="input-section">
+    <textarea id="text-input" placeholder="輸入要加在貼圖上的文字（留空則使用原圖）" rows="2"></textarea>
+    
+    <div class="controls">
+      <!-- 位置 -->
+      <div class="control-row">
+        <span class="label">位置</span>
+        <div class="btn-group" id="position-btns">
+          <button class="option-btn" data-pos="top">上方</button>
+          <button class="option-btn" data-pos="center">中央</button>
+          <button class="option-btn active" data-pos="bottom">下方</button>
+        </div>
+      </div>
+
+      <!-- 字體大小（百分比） -->
+      <div class="control-row">
+        <span class="label">大小</span>
+        <input type="range" id="font-size" min="3" max="15" value="8" step="0.5">
+        <span id="font-size-label">8%</span>
+      </div>
+
+      <!-- 字體選擇 -->
+      <div class="control-row">
+        <span class="label">字體</span>
+        <select class="font-select" id="font-select">
+          <option value="'Noto Sans TC', sans-serif" data-weight="900">思源黑體</option>
+          <option value="'LXGW WenKai TC', cursive" data-weight="700">霞鶩文楷</option>
+          <option value="'Zen Maru Gothic', sans-serif" data-weight="900">Zen 圓體</option>
+          <option value="'Kosugi Maru', sans-serif" data-weight="400">小杉圓體</option>
+          <option value="'Cubic 11', monospace" data-weight="400">俐方體11</option>
+        </select>
+      </div>
+
+      <!-- 顏色 -->
+      <div class="color-controls">
+        <div class="color-picker">
+          <span class="label">文字</span>
+          <input type="color" id="text-color" value="#ffffff">
+        </div>
+        <div class="color-picker">
+          <span class="label">描邊</span>
+          <input type="color" id="stroke-color" value="#000000">
+        </div>
+        <button class="option-btn active" id="stroke-toggle">描邊 ON</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 內建圖片管理 -->
+  <div class="manage-section">
+    <div class="manage-header">
+      <span class="manage-title">📁 內建貼圖管理</span>
+      <button class="manage-toggle" id="manage-toggle">展開設定</button>
+    </div>
+    <div class="manage-content" id="manage-content">
+      <button class="add-builtin-btn" id="add-builtin-btn">+ 上傳圖片設為內建貼圖</button>
+      <input type="file" id="builtin-file-input" accept="image/*" multiple>
+      
+      <!-- GitHub 設定 -->
+      <div class="github-section">
+        <div class="github-input-row">
+          <input type="text" class="github-input" id="github-input" placeholder="GitHub: 使用者/儲存庫/資料夾">
+          <button class="github-btn primary" id="github-load-btn">載入</button>
+          <button class="github-btn" id="github-save-btn">儲存設定</button>
+        </div>
+        <p class="github-hint">範例：healer/stickers/images（會從此資料夾載入所有圖片）</p>
+        <p class="github-status" id="github-status"></p>
+      </div>
+      
+      <div class="builtin-list" id="builtin-list"></div>
+    </div>
+  </div>
+
+  <!-- 內建貼圖 -->
+  <p class="section-title">📌 內建貼圖</p>
+  <div class="sticker-grid" id="builtin-grid">
+    <div class="empty-state">尚無內建貼圖，請在上方管理區新增</div>
+  </div>
+
+  <!-- 上傳區 -->
+  <p class="section-title">📤 臨時上傳</p>
+  <div class="upload-section">
+    <button class="upload-btn" id="upload-btn">+ 上傳圖片（不會儲存）</button>
+    <input type="file" id="file-input" accept="image/*" multiple>
+  </div>
+
+  <!-- 臨時貼圖 -->
+  <div class="sticker-grid" id="temp-grid"></div>
+
+  <!-- 結果彈窗 -->
+  <div class="modal-overlay" id="modal">
+    <button class="modal-close" id="modal-close">✕</button>
+    <p class="modal-hint">📱 <strong>長按圖片</strong> 儲存 ｜ 🖥️ <strong>右鍵複製</strong></p>
+    <img class="result-image" id="result-image" src="" alt="合成結果">
+    <div class="modal-actions">
+      <button class="action-btn" id="copy-btn">📋 複製圖片</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- 說明 -->
+  <div class="instructions">
+    <p>📝 輸入文字 → 點擊貼圖 → 長按保存 / 右鍵複製</p>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <script>
+    // ========== 預設內建圖片（首次使用時載入） ==========
+    const DEFAULT_BUILTIN = [
+      // 在這裡放你的預設圖片 URL
+      // 'https://example.com/sticker1.png',
+      // 'https://example.com/sticker2.png',
+    ];
+
+    // ========== 預設 GitHub 設定 ==========
+    // 👇👇👇 在這裡填入你的 GitHub 路徑 👇👇👇
+    const DEFAULT_GITHUB_REPO = 'YOUR_USERNAME/stickers';
+    // 格式：使用者名稱/儲存庫名稱
+    // 範例：healer123/my-stickers
+    // 如果圖片在子資料夾：healer123/my-stickers/threads
+    // ☝️☝️☝️ 修改上面這行 ☝️☝️☝️
+
+    // ========== 狀態 ==========
+    const state = {
+      builtinUrls: [],      // 內建圖片 URL 列表（本機上傳）
+      githubUrls: [],       // GitHub 圖片 URL 列表
+      githubRepo: '',       // GitHub 路徑設定
+      tempStickers: [],     // 臨時上傳的圖片
+      textPosition: 'bottom',
+      fontSizePercent: 8,   // 改為百分比
+      fontFamily: "'Noto Sans TC', sans-serif",
+      fontWeight: '900',
+      textColor: '#ffffff',
+      strokeColor: '#000000',
+      hasStroke: true,
+      currentBlob: null,
+      currentDataUrl: null
+    };
+
+    const POSITIONS = { top: 0.15, center: 0.5, bottom: 0.85 };
+
+    // ========== DOM ==========
+    const $ = id => document.getElementById(id);
+    const el = {
+      textInput: $('text-input'),
+      fontSizeSlider: $('font-size'),
+      fontSizeLabel: $('font-size-label'),
+      fontSelect: $('font-select'),
+      textColor: $('text-color'),
+      strokeColor: $('stroke-color'),
+      strokeToggle: $('stroke-toggle'),
+      positionBtns: $('position-btns'),
+      uploadBtn: $('upload-btn'),
+      fileInput: $('file-input'),
+      builtinGrid: $('builtin-grid'),
+      tempGrid: $('temp-grid'),
+      manageToggle: $('manage-toggle'),
+      manageContent: $('manage-content'),
+      addBuiltinBtn: $('add-builtin-btn'),
+      builtinFileInput: $('builtin-file-input'),
+      githubInput: $('github-input'),
+      githubLoadBtn: $('github-load-btn'),
+      githubSaveBtn: $('github-save-btn'),
+      githubStatus: $('github-status'),
+      builtinList: $('builtin-list'),
+      modal: $('modal'),
+      modalClose: $('modal-close'),
+      resultImage: $('result-image'),
+      copyBtn: $('copy-btn'),
+      toast: $('toast'),
+      canvas: $('canvas')
+    };
+
+    // ========== Toast ==========
+    function showToast(msg, isError = false) {
+      el.toast.textContent = msg;
+      el.toast.className = 'toast show' + (isError ? ' error' : '');
+      setTimeout(() => el.toast.className = 'toast', 2500);
+    }
+
+    // ========== 文字換行 ==========
+    function wrapText(ctx, text, maxWidth) {
+      const lines = [];
+      let currentLine = '';
+      for (const char of text) {
+        const testLine = currentLine + char;
+        if (ctx.measureText(testLine).width > maxWidth && currentLine) {
+          lines.push(currentLine);
+          currentLine = char;
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine) lines.push(currentLine);
+      return lines;
+    }
+
+    // ========== 合成圖片 ==========
+    async function processSticker(stickerUrl) {
+      const canvas = el.canvas;
+      const ctx = canvas.getContext('2d');
+      const text = el.textInput.value.trim();
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      try {
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = stickerUrl;
+        });
+      } catch (e) {
+        showToast('圖片載入失敗', true);
+        return;
+      }
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      if (text) {
+        const posY = canvas.height * POSITIONS[state.textPosition];
+        
+        // 字體大小 = 圖片高度 × 百分比
+        const fontSize = Math.round(canvas.height * (state.fontSizePercent / 100));
+        
+        ctx.font = `${state.fontWeight} ${fontSize}px ${state.fontFamily}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const maxWidth = canvas.width * 0.9;
+        const lines = wrapText(ctx, text, maxWidth);
+        const lineHeight = fontSize * 1.3;
+        const startY = posY - ((lines.length - 1) * lineHeight) / 2;
+
+        lines.forEach((line, i) => {
+          const y = startY + i * lineHeight;
+          if (state.hasStroke) {
+            ctx.strokeStyle = state.strokeColor;
+            ctx.lineWidth = fontSize / 8;
+            ctx.lineJoin = 'round';
+            ctx.strokeText(line, canvas.width / 2, y);
+          }
+          ctx.fillStyle = state.textColor;
+          ctx.fillText(line, canvas.width / 2, y);
+        });
+      }
+
+      state.currentDataUrl = canvas.toDataURL('image/png');
+      state.currentBlob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+
+      el.resultImage.src = state.currentDataUrl;
+      el.modal.classList.add('show');
+    }
+
+    // ========== 複製 ==========
+    async function tryCopy() {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': state.currentBlob })
+        ]);
+        showToast('✓ 已複製到剪貼簿');
+      } catch (err) {
+        showToast('請長按圖片保存', true);
+      }
+    }
+
+    // ========== 渲染內建貼圖網格 ==========
+    function renderBuiltinGrid() {
+      // 合併 GitHub 和本機上傳的圖片
+      const allUrls = [...state.githubUrls, ...state.builtinUrls];
+      
+      if (allUrls.length === 0) {
+        el.builtinGrid.innerHTML = '<div class="empty-state">尚無內建貼圖，請設定 GitHub 或上傳圖片</div>';
+        return;
+      }
+
+      el.builtinGrid.innerHTML = allUrls.map((url, idx) => `
+        <div class="sticker-item" data-url="${url}">
+          <img src="${url}" alt="貼圖${idx + 1}" loading="lazy">
+        </div>
+      `).join('');
+
+      el.builtinGrid.querySelectorAll('.sticker-item').forEach(item => {
+        item.addEventListener('click', () => processSticker(item.dataset.url));
+      });
+    }
+
+    // ========== 渲染管理列表 ==========
+    function renderBuiltinList() {
+      if (state.builtinUrls.length === 0) {
+        el.builtinList.innerHTML = '<div class="empty-state">尚無內建貼圖</div>';
+        return;
+      }
+
+      el.builtinList.innerHTML = state.builtinUrls.map((url, idx) => `
+        <div class="builtin-item">
+          <img src="${url}" alt="">
+          <span class="url-text">貼圖 ${idx + 1}</span>
+          <button class="remove-btn" data-idx="${idx}">刪除</button>
+        </div>
+      `).join('');
+
+      el.builtinList.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.idx);
+          state.builtinUrls.splice(idx, 1);
+          saveBuiltinUrls();
+          renderBuiltinGrid();
+          renderBuiltinList();
+          showToast('已刪除');
+        });
+      });
+    }
+
+    // ========== 渲染臨時貼圖 ==========
+    function renderTempGrid() {
+      if (state.tempStickers.length === 0) {
+        el.tempGrid.innerHTML = '';
+        return;
+      }
+
+      el.tempGrid.innerHTML = state.tempStickers.map((s, idx) => `
+        <div class="sticker-item" data-url="${s.url}" data-idx="${idx}">
+          <img src="${s.url}" alt="${s.name}">
+          <button class="delete-btn" data-idx="${idx}">✕</button>
+        </div>
+      `).join('');
+
+      el.tempGrid.querySelectorAll('.sticker-item').forEach(item => {
+        item.addEventListener('click', e => {
+          if (e.target.classList.contains('delete-btn')) return;
+          processSticker(item.dataset.url);
+        });
+      });
+
+      el.tempGrid.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          const idx = parseInt(btn.dataset.idx);
+          state.tempStickers.splice(idx, 1);
+          renderTempGrid();
+        });
+      });
+    }
+
+    // ========== 儲存/讀取 ==========
+    function saveBuiltinUrls() {
+      try {
+        localStorage.setItem('sticker-builtin-urls', JSON.stringify(state.builtinUrls));
+      } catch (e) {
+        // localStorage 可能超出容量（約 5MB）
+        showToast('儲存空間已滿，請刪除一些貼圖', true);
+        // 移除剛加入的那張
+        state.builtinUrls.shift();
+      }
+    }
+
+    function loadBuiltinUrls() {
+      try {
+        const saved = localStorage.getItem('sticker-builtin-urls');
+        if (saved) {
+          state.builtinUrls = JSON.parse(saved);
+        } else if (DEFAULT_BUILTIN.length > 0) {
+          // 首次使用，載入預設
+          state.builtinUrls = [...DEFAULT_BUILTIN];
+          saveBuiltinUrls();
+        }
+      } catch (e) {
+        state.builtinUrls = [...DEFAULT_BUILTIN];
+      }
+    }
+
+    // ========== GitHub 載入功能 ==========
+    async function loadFromGitHub(repoPath) {
+      if (!repoPath.trim()) {
+        el.githubStatus.textContent = '請輸入 GitHub 路徑';
+        el.githubStatus.className = 'github-status error';
+        return;
+      }
+
+      el.githubStatus.textContent = '載入中...';
+      el.githubStatus.className = 'github-status';
+
+      try {
+        // 解析路徑: user/repo/folder
+        const parts = repoPath.trim().split('/');
+        if (parts.length < 2) {
+          throw new Error('格式錯誤，請使用: 使用者/儲存庫/資料夾');
+        }
+
+        const user = parts[0];
+        const repo = parts[1];
+        const folder = parts.slice(2).join('/') || '';
+
+        // 使用 GitHub API 取得檔案列表
+        const apiUrl = `https://api.github.com/repos/${user}/${repo}/contents/${folder}`;
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+          throw new Error('找不到此儲存庫或資料夾');
+        }
+
+        const files = await response.json();
+        
+        // 篩選圖片檔案
+        const imageFiles = files.filter(f => 
+          f.type === 'file' && 
+          /\.(jpg|jpeg|png|gif|webp)$/i.test(f.name)
+        );
+
+        if (imageFiles.length === 0) {
+          throw new Error('此資料夾中沒有圖片檔案');
+        }
+
+        // 轉換為 raw URL
+        state.githubUrls = imageFiles.map(f => 
+          `https://raw.githubusercontent.com/${user}/${repo}/main/${folder ? folder + '/' : ''}${f.name}`
+        );
+
+        el.githubStatus.textContent = `✓ 已載入 ${state.githubUrls.length} 張圖片`;
+        el.githubStatus.className = 'github-status';
+        
+        renderBuiltinGrid();
+
+      } catch (err) {
+        el.githubStatus.textContent = '✗ ' + err.message;
+        el.githubStatus.className = 'github-status error';
+      }
+    }
+
+    function saveGitHubConfig() {
+      state.githubRepo = el.githubInput.value.trim();
+      localStorage.setItem('sticker-github-repo', state.githubRepo);
+      showToast('✓ GitHub 設定已儲存');
+    }
+
+    function loadGitHubConfig() {
+      // 優先使用程式碼中的預設值
+      if (DEFAULT_GITHUB_REPO && DEFAULT_GITHUB_REPO !== 'YOUR_USERNAME/stickers') {
+        state.githubRepo = DEFAULT_GITHUB_REPO;
+        el.githubInput.value = DEFAULT_GITHUB_REPO;
+        loadFromGitHub(DEFAULT_GITHUB_REPO);
+        return;
+      }
+      
+      // 否則使用 localStorage 儲存的設定
+      const saved = localStorage.getItem('sticker-github-repo');
+      if (saved) {
+        state.githubRepo = saved;
+        el.githubInput.value = saved;
+        loadFromGitHub(saved);
+      }
+    }
+
+    // ========== 新增內建圖片（從檔案） ==========
+    function addBuiltinFiles(files) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const base64 = ev.target.result;
+          
+          // 用 base64 長度 + 結尾 50 字元作為簡易指紋
+          const fingerprint = base64.length + '_' + base64.slice(-50);
+          const isDuplicate = state.builtinUrls.some(url => {
+            const fp = url.length + '_' + url.slice(-50);
+            return fp === fingerprint;
+          });
+          
+          if (isDuplicate) {
+            showToast('此圖片已存在', true);
+            return;
+          }
+
+          state.builtinUrls.unshift(base64);
+          saveBuiltinUrls();
+          renderBuiltinGrid();
+          renderBuiltinList();
+          showToast('✓ 已新增');
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ========== 事件綁定 ==========
+    function initEvents() {
+      // 位置
+      el.positionBtns.addEventListener('click', e => {
+        if (!e.target.dataset.pos) return;
+        document.querySelectorAll('#position-btns .option-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.pos === e.target.dataset.pos);
+        });
+        state.textPosition = e.target.dataset.pos;
+      });
+
+      // 字體大小（百分比）
+      el.fontSizeSlider.addEventListener('input', e => {
+        state.fontSizePercent = parseFloat(e.target.value);
+        el.fontSizeLabel.textContent = state.fontSizePercent + '%';
+      });
+
+      // 字體選擇
+      el.fontSelect.addEventListener('change', e => {
+        const selected = e.target.options[e.target.selectedIndex];
+        state.fontFamily = e.target.value;
+        state.fontWeight = selected.dataset.weight || '700';
+      });
+
+      // 顏色
+      el.textColor.addEventListener('input', e => state.textColor = e.target.value);
+      el.strokeColor.addEventListener('input', e => state.strokeColor = e.target.value);
+
+      // 描邊
+      el.strokeToggle.addEventListener('click', () => {
+        state.hasStroke = !state.hasStroke;
+        el.strokeToggle.textContent = `描邊 ${state.hasStroke ? 'ON' : 'OFF'}`;
+        el.strokeToggle.classList.toggle('active', state.hasStroke);
+      });
+
+      // 管理區展開/收合
+      el.manageToggle.addEventListener('click', () => {
+        const isShow = el.manageContent.classList.toggle('show');
+        el.manageToggle.textContent = isShow ? '收合設定' : '展開設定';
+      });
+
+      // 新增內建圖片（檔案上傳）
+      el.addBuiltinBtn.addEventListener('click', () => el.builtinFileInput.click());
+      el.builtinFileInput.addEventListener('change', e => {
+        if (e.target.files.length > 0) {
+          addBuiltinFiles(e.target.files);
+          e.target.value = '';
+        }
+      });
+
+      // GitHub 載入
+      el.githubLoadBtn.addEventListener('click', () => loadFromGitHub(el.githubInput.value));
+      el.githubSaveBtn.addEventListener('click', saveGitHubConfig);
+      el.githubInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter') loadFromGitHub(el.githubInput.value);
+      });
+
+      // 上傳臨時圖片
+      el.uploadBtn.addEventListener('click', () => el.fileInput.click());
+      el.fileInput.addEventListener('change', e => {
+        Array.from(e.target.files).forEach(file => {
+          const reader = new FileReader();
+          reader.onload = ev => {
+            state.tempStickers.unshift({
+              url: ev.target.result,
+              name: file.name
+            });
+            renderTempGrid();
+          };
+          reader.readAsDataURL(file);
+        });
+        e.target.value = '';
+      });
+
+      // 彈窗
+      el.modalClose.addEventListener('click', () => el.modal.classList.remove('show'));
+      el.modal.addEventListener('click', e => {
+        if (e.target === el.modal) el.modal.classList.remove('show');
+      });
+
+      // 複製
+      el.copyBtn.addEventListener('click', tryCopy);
+    }
+
+    // ========== 初始化 ==========
+    loadBuiltinUrls();
+    loadGitHubConfig();
+    renderBuiltinGrid();
+    renderBuiltinList();
+    renderTempGrid();
+    initEvents();
+  </script>
+</body>
+</html>
