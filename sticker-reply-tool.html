@@ -6,8 +6,17 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>⚡ 貼圖回覆產生器</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Cubic+11&family=LXGW+WenKai+TC:wght@400;700&family=Zen+Maru+Gothic:wght@700;900&family=Kosugi+Maru&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Noto+Serif+TC:wght@400;700;900&family=Iansui&family=Huninn&display=swap" rel="stylesheet">
   <style>
+    /* 饅頭黑體 - 從 GitHub 載入 */
+    @font-face {
+      font-family: 'Mantou Sans';
+      src: url('https://cdn.jsdelivr.net/gh/mant0u0/MantouSans/Font/MantouSans-Regular.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+    
     * {
       margin: 0;
       padding: 0;
@@ -199,6 +208,32 @@
       color: #667eea;
     }
     #file-input { display: none; }
+
+    /* 分類標籤 */
+    .category-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .category-tab {
+      padding: 6px 14px;
+      font-size: 13px;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      border-radius: 16px;
+      color: #a1a1aa;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .category-tab:hover {
+      background: #3f3f46;
+    }
+    .category-tab.active {
+      background: #667eea;
+      border-color: #667eea;
+      color: #fff;
+    }
 
     /* 貼圖網格 */
     .sticker-grid {
@@ -513,16 +548,45 @@
 
   <!-- 文字設定 -->
   <div class="input-section">
-    <textarea id="text-input" placeholder="輸入要加在貼圖上的文字（留空則使用原圖）" rows="2"></textarea>
+    <textarea id="text-input" placeholder="輸入文字（按 Enter 換行）" rows="3"></textarea>
     
     <div class="controls">
       <!-- 位置 -->
       <div class="control-row">
         <span class="label">位置</span>
         <div class="btn-group" id="position-btns">
-          <button class="option-btn" data-pos="top">上方</button>
-          <button class="option-btn" data-pos="center">中央</button>
-          <button class="option-btn active" data-pos="bottom">下方</button>
+          <button class="option-btn" data-pos="top">上</button>
+          <button class="option-btn" data-pos="center">中</button>
+          <button class="option-btn" data-pos="bottom">下</button>
+          <button class="option-btn active" data-pos="right">右</button>
+        </div>
+      </div>
+
+      <!-- 延長方向 -->
+      <div class="control-row">
+        <span class="label">延長</span>
+        <div class="btn-group" id="extend-btns">
+          <button class="option-btn" data-extend="none">無</button>
+          <button class="option-btn active" data-extend="right">向右</button>
+          <button class="option-btn" data-extend="bottom">向下</button>
+        </div>
+      </div>
+
+      <!-- 橫書/直書 -->
+      <div class="control-row">
+        <span class="label">排列</span>
+        <div class="btn-group" id="writing-btns">
+          <button class="option-btn active" data-writing="horizontal">橫書</button>
+          <button class="option-btn" data-writing="vertical">直書</button>
+        </div>
+      </div>
+
+      <!-- 直書方向（僅直書時顯示） -->
+      <div class="control-row" id="vertical-direction-row" style="display:none;">
+        <span class="label">直書順序</span>
+        <div class="btn-group" id="vertical-direction-btns">
+          <button class="option-btn active" data-dir="rtl">右→左</button>
+          <button class="option-btn" data-dir="ltr">左→右</button>
         </div>
       </div>
 
@@ -538,10 +602,10 @@
         <span class="label">字體</span>
         <select class="font-select" id="font-select">
           <option value="'Noto Sans TC', sans-serif" data-weight="900">思源黑體</option>
-          <option value="'LXGW WenKai TC', cursive" data-weight="700">霞鶩文楷</option>
-          <option value="'Zen Maru Gothic', sans-serif" data-weight="900">Zen 圓體</option>
-          <option value="'Kosugi Maru', sans-serif" data-weight="400">小杉圓體</option>
-          <option value="'Cubic 11', monospace" data-weight="400">俐方體11</option>
+          <option value="'Mantou Sans', sans-serif" data-weight="400">饅頭黑體</option>
+          <option value="'Noto Serif TC', serif" data-weight="700">思源宋體</option>
+          <option value="'Huninn', sans-serif" data-weight="400">粉圓</option>
+          <option value="'Iansui', cursive" data-weight="400">芫荽</option>
         </select>
       </div>
 
@@ -549,13 +613,13 @@
       <div class="color-controls">
         <div class="color-picker">
           <span class="label">文字</span>
-          <input type="color" id="text-color" value="#ffffff">
+          <input type="color" id="text-color" value="#000000">
         </div>
         <div class="color-picker">
           <span class="label">描邊</span>
           <input type="color" id="stroke-color" value="#000000">
         </div>
-        <button class="option-btn active" id="stroke-toggle">描邊 ON</button>
+        <button class="option-btn" id="stroke-toggle">描邊 OFF</button>
       </div>
     </div>
   </div>
@@ -577,7 +641,7 @@
           <button class="github-btn primary" id="github-load-btn">載入</button>
           <button class="github-btn" id="github-save-btn">儲存設定</button>
         </div>
-        <p class="github-hint">範例：healer/stickers/images（會從此資料夾載入所有圖片）</p>
+        <p class="github-hint">部署在 GitHub Pages 會自動偵測，或手動輸入：帳號/儲存庫</p>
         <p class="github-status" id="github-status"></p>
       </div>
       
@@ -587,8 +651,9 @@
 
   <!-- 內建貼圖 -->
   <p class="section-title">📌 內建貼圖</p>
+  <div class="category-tabs" id="category-tabs"></div>
   <div class="sticker-grid" id="builtin-grid">
-    <div class="empty-state">尚無內建貼圖，請在上方管理區新增</div>
+    <div class="empty-state">載入中...</div>
   </div>
 
   <!-- 上傳區 -->
@@ -616,7 +681,7 @@
 
   <!-- 說明 -->
   <div class="instructions">
-    <p>📝 輸入文字 → 點擊貼圖 → 長按保存 / 右鍵複製</p>
+    <p>📝 輸入文字（可換行）→ 點擊貼圖 → 長按保存 / 右鍵複製</p>
   </div>
 
   <canvas id="canvas"></canvas>
@@ -629,32 +694,41 @@
       // 'https://example.com/sticker2.png',
     ];
 
-    // ========== 預設 GitHub 設定 ==========
-    // 👇👇👇 在這裡填入你的 GitHub 路徑 👇👇👇
-    const DEFAULT_GITHUB_REPO = 'YOUR_USERNAME/stickers';
-    // 格式：使用者名稱/儲存庫名稱
-    // 範例：healer123/my-stickers
-    // 如果圖片在子資料夾：healer123/my-stickers/threads
-    // ☝️☝️☝️ 修改上面這行 ☝️☝️☝️
+    // ========== GitHub 設定 ==========
+    // 你的 GitHub 儲存庫路徑
+    const MANUAL_GITHUB_REPO = 'Healer20021108/stickers';
+    
+    // 圖片資料夾（留空 = 根目錄）
+    const STICKER_FOLDER = '';
 
     // ========== 狀態 ==========
     const state = {
       builtinUrls: [],      // 內建圖片 URL 列表（本機上傳）
       githubUrls: [],       // GitHub 圖片 URL 列表
       githubRepo: '',       // GitHub 路徑設定
+      categories: [],       // 分類列表 [{name, urls}]
+      currentCategory: '',  // 當前選中的分類
       tempStickers: [],     // 臨時上傳的圖片
-      textPosition: 'bottom',
-      fontSizePercent: 8,   // 改為百分比
+      textPosition: 'right',
+      extendDirection: 'right',
+      writingMode: 'horizontal',
+      verticalDirection: 'rtl',
+      fontSizePercent: 8,
       fontFamily: "'Noto Sans TC', sans-serif",
       fontWeight: '900',
-      textColor: '#ffffff',
+      textColor: '#000000',
       strokeColor: '#000000',
-      hasStroke: true,
+      hasStroke: false,
       currentBlob: null,
       currentDataUrl: null
     };
 
-    const POSITIONS = { top: 0.15, center: 0.5, bottom: 0.85 };
+    const POSITIONS = { 
+      top: { x: 0.5, y: 0.15 },
+      center: { x: 0.5, y: 0.5 },
+      bottom: { x: 0.5, y: 0.85 },
+      right: { x: 0.85, y: 0.5 }
+    };
 
     // ========== DOM ==========
     const $ = id => document.getElementById(id);
@@ -716,7 +790,7 @@
     async function processSticker(stickerUrl) {
       const canvas = el.canvas;
       const ctx = canvas.getContext('2d');
-      const text = el.textInput.value.trim();
+      const text = el.textInput.value;  // 不用 trim，保留換行
 
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -732,36 +806,140 @@
         return;
       }
 
-      canvas.width = img.width;
-      canvas.height = img.height;
+      // 字體大小 = 原圖高度 × 百分比
+      const fontSize = Math.round(img.height * (state.fontSizePercent / 100));
+      ctx.font = `${state.fontWeight} ${fontSize}px ${state.fontFamily}`;
+      
+      // 處理文字行（保留用戶換行）
+      let lines = [];
+      if (text.trim()) {
+        const userLines = text.split('\n');
+        const maxTextWidth = img.width * 0.8;
+        
+        userLines.forEach(userLine => {
+          if (userLine.trim() === '') {
+            lines.push('');
+          } else {
+            const wrapped = wrapText(ctx, userLine, maxTextWidth);
+            lines.push(...wrapped);
+          }
+        });
+      }
+
+      // 計算文字區域所需尺寸
+      const lineHeight = fontSize * 1.3;
+      const colWidth = fontSize * 1.4;  // 直書時每列寬度
+      const charHeight = fontSize * 1.2;  // 直書時每字高度
+      
+      // 計算邊距（更大的邊距讓畫面更美觀）
+      const padding = fontSize * 1.2;
+      
+      // 計算 canvas 尺寸
+      let canvasWidth = img.width;
+      let canvasHeight = img.height;
+      let textAreaX, textAreaY;
+      
+      // 根據延伸方向和書寫模式計算所需空間
+      if (state.extendDirection === 'none') {
+        const pos = POSITIONS[state.textPosition];
+        textAreaX = img.width * pos.x;
+        textAreaY = img.height * pos.y;
+      } 
+      else if (state.extendDirection === 'right') {
+        let neededWidth;
+        
+        if (state.writingMode === 'vertical') {
+          // 直書：需要的寬度 = 列數 × 列寬 + 左右邊距
+          const numCols = lines.length || 1;
+          neededWidth = numCols * colWidth + padding * 2;
+        } else {
+          // 橫書：需要的寬度 = 最長行寬度 + 左右邊距
+          const maxLineWidth = Math.max(...lines.map(line => ctx.measureText(line).width), fontSize);
+          neededWidth = maxLineWidth + padding * 2;
+        }
+        
+        // 確保最小延伸寬度
+        neededWidth = Math.max(neededWidth, img.width * 0.4);
+        canvasWidth = img.width + neededWidth;
+        
+        // 文字區域中心點
+        textAreaX = img.width + neededWidth / 2;
+        textAreaY = canvasHeight / 2;
+      } 
+      else if (state.extendDirection === 'bottom') {
+        let neededHeight;
+        
+        if (state.writingMode === 'vertical') {
+          // 直書：需要的高度 = 最長列的字數 × 字高 + 上下邊距
+          const maxChars = Math.max(...lines.map(line => line.length), 1);
+          neededHeight = maxChars * charHeight + padding * 2;
+        } else {
+          // 橫書：需要的高度 = 行數 × 行高 + 上下邊距
+          const numLines = lines.length || 1;
+          neededHeight = numLines * lineHeight + padding * 2;
+        }
+        
+        neededHeight = Math.max(neededHeight, img.height * 0.4);
+        canvasHeight = img.height + neededHeight;
+        
+        textAreaX = canvasWidth / 2;
+        textAreaY = img.height + neededHeight / 2;
+      }
+
+      // 如果文字位置不是延伸區，則使用圖片內的位置
+      if (state.extendDirection === 'right' && state.textPosition !== 'right') {
+        const pos = POSITIONS[state.textPosition];
+        textAreaX = img.width * pos.x;
+        textAreaY = img.height * pos.y;
+        canvasWidth = img.width;
+      }
+      if (state.extendDirection === 'bottom' && state.textPosition !== 'bottom') {
+        const pos = POSITIONS[state.textPosition];
+        textAreaX = img.width * pos.x;
+        textAreaY = img.height * pos.y;
+        canvasHeight = img.height;
+      }
+
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      
+      // 填充白色背景
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      
+      // 繪製圖片
       ctx.drawImage(img, 0, 0);
 
-      if (text) {
-        const posY = canvas.height * POSITIONS[state.textPosition];
-        
-        // 字體大小 = 圖片高度 × 百分比
-        const fontSize = Math.round(canvas.height * (state.fontSizePercent / 100));
-        
+      // 繪製文字
+      if (lines.length > 0 && text.trim()) {
         ctx.font = `${state.fontWeight} ${fontSize}px ${state.fontFamily}`;
-        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
-        const maxWidth = canvas.width * 0.9;
-        const lines = wrapText(ctx, text, maxWidth);
-        const lineHeight = fontSize * 1.3;
-        const startY = posY - ((lines.length - 1) * lineHeight) / 2;
+        if (state.writingMode === 'vertical') {
+          ctx.textAlign = 'center';
+          drawVerticalText(ctx, lines, textAreaX, textAreaY, fontSize);
+        } else {
+          // 橫書模式：左對齊
+          ctx.textAlign = 'left';
+          const lineHeight = fontSize * 1.3;
+          const startY = textAreaY - ((lines.length - 1) * lineHeight) / 2;
+          
+          // 找出最長行的寬度，計算左對齊的起始 X
+          const maxLineWidth = Math.max(...lines.map(line => ctx.measureText(line).width));
+          const textStartX = textAreaX - maxLineWidth / 2;
 
-        lines.forEach((line, i) => {
-          const y = startY + i * lineHeight;
-          if (state.hasStroke) {
-            ctx.strokeStyle = state.strokeColor;
-            ctx.lineWidth = fontSize / 8;
-            ctx.lineJoin = 'round';
-            ctx.strokeText(line, canvas.width / 2, y);
-          }
-          ctx.fillStyle = state.textColor;
-          ctx.fillText(line, canvas.width / 2, y);
-        });
+          lines.forEach((line, i) => {
+            const y = startY + i * lineHeight;
+            if (state.hasStroke) {
+              ctx.strokeStyle = state.strokeColor;
+              ctx.lineWidth = fontSize / 8;
+              ctx.lineJoin = 'round';
+              ctx.strokeText(line, textStartX, y);
+            }
+            ctx.fillStyle = state.textColor;
+            ctx.fillText(line, textStartX, y);
+          });
+        }
       }
 
       state.currentDataUrl = canvas.toDataURL('image/png');
@@ -769,6 +947,48 @@
 
       el.resultImage.src = state.currentDataUrl;
       el.modal.classList.add('show');
+    }
+    
+    // ========== 直書繪製 ==========
+    function drawVerticalText(ctx, lines, centerX, centerY, fontSize) {
+      const colWidth = fontSize * 1.4;
+      const charHeight = fontSize * 1.2;
+      const totalCols = lines.length;
+      
+      // 找出最長的列來計算區域高度
+      const maxChars = Math.max(...lines.map(line => line.length));
+      const totalHeight = maxChars * charHeight;
+      
+      // 所有列的第一個字都從同一個 Y 位置開始（頂部對齊）
+      const startY = centerY - totalHeight / 2 + charHeight / 2;
+      
+      // 根據方向決定起始 X 位置
+      let startX;
+      if (state.verticalDirection === 'rtl') {
+        startX = centerX + ((totalCols - 1) * colWidth) / 2;
+      } else {
+        startX = centerX - ((totalCols - 1) * colWidth) / 2;
+      }
+      
+      lines.forEach((line, colIndex) => {
+        const x = state.verticalDirection === 'rtl'
+          ? startX - colIndex * colWidth
+          : startX + colIndex * colWidth;
+        
+        const chars = line.split('');
+        
+        chars.forEach((char, charIndex) => {
+          const y = startY + charIndex * charHeight;
+          if (state.hasStroke) {
+            ctx.strokeStyle = state.strokeColor;
+            ctx.lineWidth = fontSize / 8;
+            ctx.lineJoin = 'round';
+            ctx.strokeText(char, x, y);
+          }
+          ctx.fillStyle = state.textColor;
+          ctx.fillText(char, x, y);
+        });
+      });
     }
 
     // ========== 複製 ==========
@@ -785,15 +1005,26 @@
 
     // ========== 渲染內建貼圖網格 ==========
     function renderBuiltinGrid() {
-      // 合併 GitHub 和本機上傳的圖片
-      const allUrls = [...state.githubUrls, ...state.builtinUrls];
+      // 根據當前分類取得圖片
+      let urls = [];
       
-      if (allUrls.length === 0) {
-        el.builtinGrid.innerHTML = '<div class="empty-state">尚無內建貼圖，請設定 GitHub 或上傳圖片</div>';
+      if (state.categories.length > 0) {
+        const currentCat = state.categories.find(c => c.name === state.currentCategory);
+        urls = currentCat ? currentCat.urls : [];
+      } else {
+        // 沒有分類時使用全部圖片
+        urls = [...state.githubUrls, ...state.builtinUrls];
+      }
+      
+      // 加入本機上傳的圖片
+      urls = [...urls, ...state.builtinUrls];
+      
+      if (urls.length === 0) {
+        el.builtinGrid.innerHTML = '<div class="empty-state">尚無貼圖，請上傳圖片到 GitHub 資料夾</div>';
         return;
       }
 
-      el.builtinGrid.innerHTML = allUrls.map((url, idx) => `
+      el.builtinGrid.innerHTML = urls.map((url, idx) => `
         <div class="sticker-item" data-url="${url}">
           <img src="${url}" alt="貼圖${idx + 1}" loading="lazy">
         </div>
@@ -901,50 +1132,114 @@
       el.githubStatus.className = 'github-status';
 
       try {
-        // 解析路徑: user/repo/folder
+        // 解析路徑: user/repo
         const parts = repoPath.trim().split('/');
         if (parts.length < 2) {
-          throw new Error('格式錯誤，請使用: 使用者/儲存庫/資料夾');
+          throw new Error('格式錯誤，請使用: 使用者/儲存庫');
         }
 
         const user = parts[0];
         const repo = parts[1];
-        const folder = parts.slice(2).join('/') || '';
 
-        // 使用 GitHub API 取得檔案列表
-        const apiUrl = `https://api.github.com/repos/${user}/${repo}/contents/${folder}`;
+        // 取得根目錄內容
+        const apiUrl = `https://api.github.com/repos/${user}/${repo}/contents/`;
         const response = await fetch(apiUrl);
         
         if (!response.ok) {
-          throw new Error('找不到此儲存庫或資料夾');
+          throw new Error('找不到此儲存庫');
         }
 
-        const files = await response.json();
+        const items = await response.json();
         
-        // 篩選圖片檔案
-        const imageFiles = files.filter(f => 
-          f.type === 'file' && 
-          /\.(jpg|jpeg|png|gif|webp)$/i.test(f.name)
-        );
-
-        if (imageFiles.length === 0) {
-          throw new Error('此資料夾中沒有圖片檔案');
+        // 找出所有資料夾（作為分類）
+        const folders = items.filter(f => f.type === 'dir');
+        
+        // 清空分類
+        state.categories = [];
+        
+        // 載入每個資料夾的圖片
+        for (const folder of folders) {
+          try {
+            const folderResponse = await fetch(folder.url);
+            if (folderResponse.ok) {
+              const folderItems = await folderResponse.json();
+              const images = folderItems
+                .filter(f => f.type === 'file' && /\.(jpg|jpeg|png|gif|webp)$/i.test(f.name))
+                .map(f => f.download_url);
+              
+              if (images.length > 0) {
+                state.categories.push({
+                  name: folder.name,
+                  urls: images
+                });
+              }
+            }
+          } catch (e) {
+            console.warn(`載入資料夾 ${folder.name} 失敗`, e);
+          }
         }
 
-        // 轉換為 raw URL
-        state.githubUrls = imageFiles.map(f => 
-          `https://raw.githubusercontent.com/${user}/${repo}/main/${folder ? folder + '/' : ''}${f.name}`
-        );
+        // 也檢查根目錄的圖片
+        const rootImages = items
+          .filter(f => f.type === 'file' && /\.(jpg|jpeg|png|gif|webp)$/i.test(f.name))
+          .map(f => f.download_url);
+        
+        if (rootImages.length > 0) {
+          state.categories.unshift({
+            name: '全部',
+            urls: rootImages
+          });
+        }
 
-        el.githubStatus.textContent = `✓ 已載入 ${state.githubUrls.length} 張圖片`;
+        if (state.categories.length === 0) {
+          throw new Error('找不到任何圖片');
+        }
+
+        // 設定預設分類
+        state.currentCategory = state.categories[0].name;
+        
+        // 合併所有圖片到 githubUrls（向下相容）
+        state.githubUrls = state.categories.flatMap(c => c.urls);
+
+        el.githubStatus.textContent = `✓ 已載入 ${state.categories.length} 個分類，共 ${state.githubUrls.length} 張圖片`;
         el.githubStatus.className = 'github-status';
         
+        renderCategoryTabs();
         renderBuiltinGrid();
 
       } catch (err) {
         el.githubStatus.textContent = '✗ ' + err.message;
         el.githubStatus.className = 'github-status error';
+        state.githubUrls = [];
+        state.categories = [];
+        renderCategoryTabs();
+        renderBuiltinGrid();
       }
+    }
+
+    // ========== 渲染分類標籤 ==========
+    function renderCategoryTabs() {
+      const tabs = document.getElementById('category-tabs');
+      
+      if (state.categories.length <= 1) {
+        tabs.innerHTML = '';
+        return;
+      }
+      
+      tabs.innerHTML = state.categories.map(cat => `
+        <button class="category-tab ${cat.name === state.currentCategory ? 'active' : ''}" 
+                data-category="${cat.name}">
+          ${cat.name} (${cat.urls.length})
+        </button>
+      `).join('');
+      
+      tabs.querySelectorAll('.category-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.currentCategory = btn.dataset.category;
+          renderCategoryTabs();
+          renderBuiltinGrid();
+        });
+      });
     }
 
     function saveGitHubConfig() {
@@ -954,20 +1249,36 @@
     }
 
     function loadGitHubConfig() {
-      // 優先使用程式碼中的預設值
-      if (DEFAULT_GITHUB_REPO && DEFAULT_GITHUB_REPO !== 'YOUR_USERNAME/stickers') {
-        state.githubRepo = DEFAULT_GITHUB_REPO;
-        el.githubInput.value = DEFAULT_GITHUB_REPO;
-        loadFromGitHub(DEFAULT_GITHUB_REPO);
-        return;
+      let repoPath = '';
+      
+      // 1. 優先使用手動設定
+      if (MANUAL_GITHUB_REPO) {
+        repoPath = MANUAL_GITHUB_REPO;
+      } 
+      // 2. 嘗試自動偵測 GitHub Pages URL
+      else if (window.location.hostname.endsWith('.github.io')) {
+        // URL 格式: https://username.github.io/repo/...
+        const hostname = window.location.hostname;
+        const username = hostname.replace('.github.io', '');
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const repo = pathParts[0] || username; // 如果是 user.github.io 根目錄
+        repoPath = `${username}/${repo}`;
+      }
+      // 3. 使用 localStorage 儲存的設定
+      else {
+        const saved = localStorage.getItem('sticker-github-repo');
+        if (saved) repoPath = saved;
       }
       
-      // 否則使用 localStorage 儲存的設定
-      const saved = localStorage.getItem('sticker-github-repo');
-      if (saved) {
-        state.githubRepo = saved;
-        el.githubInput.value = saved;
-        loadFromGitHub(saved);
+      // 加上子資料夾
+      if (repoPath && STICKER_FOLDER) {
+        repoPath = `${repoPath}/${STICKER_FOLDER}`;
+      }
+      
+      if (repoPath) {
+        state.githubRepo = repoPath;
+        el.githubInput.value = repoPath;
+        loadFromGitHub(repoPath);
       }
     }
 
@@ -1009,6 +1320,37 @@
           btn.classList.toggle('active', btn.dataset.pos === e.target.dataset.pos);
         });
         state.textPosition = e.target.dataset.pos;
+      });
+
+      // 延長方向
+      document.getElementById('extend-btns').addEventListener('click', e => {
+        if (!e.target.dataset.extend) return;
+        document.querySelectorAll('#extend-btns .option-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.extend === e.target.dataset.extend);
+        });
+        state.extendDirection = e.target.dataset.extend;
+      });
+
+      // 橫書/直書
+      document.getElementById('writing-btns').addEventListener('click', e => {
+        if (!e.target.dataset.writing) return;
+        document.querySelectorAll('#writing-btns .option-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.writing === e.target.dataset.writing);
+        });
+        state.writingMode = e.target.dataset.writing;
+        
+        // 顯示/隱藏直書方向選項
+        document.getElementById('vertical-direction-row').style.display = 
+          state.writingMode === 'vertical' ? 'flex' : 'none';
+      });
+
+      // 直書方向
+      document.getElementById('vertical-direction-btns').addEventListener('click', e => {
+        if (!e.target.dataset.dir) return;
+        document.querySelectorAll('#vertical-direction-btns .option-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.dir === e.target.dataset.dir);
+        });
+        state.verticalDirection = e.target.dataset.dir;
       });
 
       // 字體大小（百分比）
